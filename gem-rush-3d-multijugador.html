@@ -30,12 +30,12 @@ p{font:13px system-ui;max-width:640px;color:#d9d3ff}
 <canvas id="gl"></canvas><canvas id="ui"></canvas>
 <div id="m"><h1>GEM RUSH 3D</h1>
 <div class="r" id="pf"><input id="pn" maxlength="12" placeholder="TU NOMBRE" autocomplete="off" oninput="PN=this.value.trim().slice(0,12);try{localStorage.setItem('gr_name',PN)}catch(e){}"><span id="tr">🏆 0</span></div>
-<div>ELIGE TU BRAWLER</div><div class="r" id="ch"></div>
+<div>ELIGE TU LUCHADOR</div><div class="r" id="ch"></div>
 <div>ELIGE MODO</div><div class="r" id="md"></div>
 <div>ELIGE MAPA</div><div class="r" id="mp"></div>
 <button id="go">¡JUGAR!</button>
 <div>MULTIJUGADOR</div><div class="r" id="nb"><input id="nu" class="ni" placeholder="Servidor ws://..."><input id="nc" class="ni" maxlength="4" placeholder="CÓDIGO" style="width:110px;text-transform:uppercase"><button class="c" id="n1" style="width:110px" onclick="N1=!N1;this.querySelector('b').textContent=N1?'1 VS 1':'3 VS 3'"><b>3 VS 3</b></button><button class="c" style="width:130px" onclick="nconn({t:'create',n:PN,k:sel})"><b>CREAR SALA</b></button><button class="c" style="width:130px" onclick="nconn({t:'join',code:document.getElementById('nc').value.toUpperCase(),n:PN,k:sel})"><b>UNIRSE</b></button></div><div id="ns" style="font:14px system-ui;color:#ffd23f;min-height:18px;-webkit-text-stroke:0"></div><div id="bi"></div>
-<p>3 contra 3 · Atrapagemas: junta 10 gemas y aguántalas 15 s (Recompensa: 2 min, cada KO da estrellas según la recompensa del rival; Atraco: destruye la caja fuerte rival en 2 min; Balón Brawl: marca 2 goles (atacar con el balón = chutar); modo KOs: primero a 10) · WASD mover · ratón apuntar · clic atacar · ESPACIO saltar · E o clic derecho súper · F hipercarga · G gadget, 3 usos (o clic en los botones) · Q o clic pegado a tu brawler = autoapuntado · M sonido · Móvil: joystick izquierdo para moverte; arrastra y suelta el botón naranja para disparar (toque rápido = autoapuntado)</p></div>
+<p>3 contra 3 · Fiebre de gemas: junta 10 gemas y aguántalas 15 s (Duelo de estrellas: 2 min, cada KO da estrellas según el valor del rival; Asalto: destruye la caja fuerte rival en 2 min; Golazo: marca 2 goles (atacar con el balón = chutar); modo KOs: primero a 10) · WASD mover · ratón apuntar · clic atacar · ESPACIO saltar · E o clic derecho súper · F hipercarga · G gadget, 3 usos (o clic en los botones) · Q o clic pegado a tu luchador = autoapuntado · M sonido · Móvil: joystick izquierdo para moverte; arrastra y suelta el botón naranja para disparar (toque rápido = autoapuntado)</p></div>
 <button id="sn" onmousedown="event.stopPropagation()" onclick="sndT()" style="position:fixed;right:12px;top:12px;width:46px;height:46px;border:4px solid #1a1040;border-radius:14px;background:#4a2ac0;color:#fff;font-size:20px;cursor:pointer;box-shadow:0 4px 0 #1a1040">🔊</button>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -83,7 +83,7 @@ const TH=[{n:'Desierto',g:[0xf2c46d,0xe6b258],w:0xb5693a,c:0x8a5a2b,b:0x58b030,s
    .  suelo      #  muro      c  caja (solo la rompe el súper de Brasa)      b  arbusto      ~  agua (se bloquea al andar, NO bloquea las balas)
    Cada mapa va con su tema (TH[i]). Puedes editar las letras a mano: mantén 56 columnas x 34 filas, borde exterior de #, zona de aparición (x 1-7 e y 10-23) libre y el centro libre. */
 const MAPS=[
-{n:'Cañón Dorado',d:'Cajas en los carriles y arbustos en el centro',rows:[
+{n:'Barranco Ámbar',d:'Cajas en los carriles y arbustos en el centro',rows:[
 '########################################################',
 '#......................................................#',
 '#.......cc.......cc..................cc.......cc.......#',
@@ -119,7 +119,7 @@ const MAPS=[
 '#......................................................#',
 '########################################################'
 ]},
-{n:'Pradera Cruzada',d:'Setos largos, grandes arbustos y un charco',rows:[
+{n:'Valle Trébol',d:'Setos largos, grandes arbustos y un charco',rows:[
 '########################################################',
 '#......................................................#',
 '#....cc.....cc......cc............cc......cc.....cc....#',
@@ -155,7 +155,7 @@ const MAPS=[
 '#......................................................#',
 '########################################################'
 ]},
-{n:'Mina de Cristal',d:'Pasillos de roca y lagos que se cruzan',rows:[
+{n:'Gruta Prisma',d:'Pasillos de roca y lagos que se cruzan',rows:[
 '########################################################',
 '#............cc..........................cc............#',
 '#......cc..........cc..............cc..........cc......#',
@@ -194,7 +194,7 @@ const MAPS=[
 let sel='brasa',ti=0,PN=ldName(),TRO=ldTro(),lbRef=1,bnt=0,bst=[0,0],bT=120,bOT=0,hst=0,SFS=[],bbl=0,bg=[0,0],blRst=0,BAL={own:null,m:null},tch=('ontouchstart' in window&&matchMedia('(pointer:coarse)').matches)?1:0,tj={m:0,mx:0,mz:0,x0:0,y0:0,a:0,ax:0,az:0,f:0,fx:0,fz:0},tp={},resOn=0,cdS=0,cdN=9,shS=[0,0,0],gmode=1,Gs=[],gt=2,cdT=15,cdH=-1,st='menu',Mp,Ix,world,U=[],Pj=[],Fx=[],sc=[0,0],me,ent,keys={},mouse={x:0,y:0,d:0,r:0},last=0,endT='',idleT=0;
 let shk=0,Pt=[],Dn=[],cx=0,cz=0,aimM=null,aimC=null;
 const ch=document.getElementById('ch'),mpEl=document.getElementById('mp');
-function menu(){const md=document.getElementById('md');md.innerHTML='';[['ATRAPAGEMAS',1],['A 10 KOs',0],['RECOMPENSA',2],['ATRACO',3],['BALÓN BRAWL',4]].forEach(([n,v])=>{const b=document.createElement('button');b.className='c'+((bbl?4:hst?3:bnt?2:gmode)==v?' on':'');b.style.width='170px';b.innerHTML='<b>'+n+'</b>';b.onclick=()=>{gmode=v==1?1:0;bnt=v==2?1:0;hst=v==3?1:0;bbl=v==4?1:0;menu()};md.appendChild(b)});ch.innerHTML='';for(const k in K){const b=document.createElement('button');b.className='c bc'+(k==sel?' on':'');b.innerHTML=`<div class="sw" style="background:${hx(K[k].col)}"></div><b>${K[k].n}</b><small>🏆 ${TRO.b[k]|0}</small>`;b.onclick=()=>{aud();sfx('tick');sel=k;menu()};ch.appendChild(b)}
+function menu(){const md=document.getElementById('md');md.innerHTML='';[['FIEBRE DE GEMAS',1],['A 10 KOs',0],['DUELO DE ESTRELLAS',2],['ASALTO',3],['GOLAZO',4]].forEach(([n,v])=>{const b=document.createElement('button');b.className='c'+((bbl?4:hst?3:bnt?2:gmode)==v?' on':'');b.style.width='170px';b.innerHTML='<b>'+n+'</b>';b.onclick=()=>{gmode=v==1?1:0;bnt=v==2?1:0;hst=v==3?1:0;bbl=v==4?1:0;menu()};md.appendChild(b)});ch.innerHTML='';for(const k in K){const b=document.createElement('button');b.className='c bc'+(k==sel?' on':'');b.innerHTML=`<div class="sw" style="background:${hx(K[k].col)}"></div><b>${K[k].n}</b><small>🏆 ${TRO.b[k]|0}</small>`;b.onclick=()=>{aud();sfx('tick');sel=k;menu()};ch.appendChild(b)}
 mpEl.innerHTML='';MAPS.forEach((m,i)=>{const b=document.createElement('button');b.className='c'+(i==ti?' on':'');b.style.width='190px';b.innerHTML=`<div class="sw" style="background:linear-gradient(90deg,${hx(TH[i].g[0])} 50%,${hx(TH[i].w)} 50%)"></div><b>${m.n}</b><small>${TH[i].n} · ${m.d}</small>`;b.onclick=()=>{ti=i;menu()};mpEl.appendChild(b)});lbInfo()}
 menu();
 document.fonts&&document.fonts.load('30px "Lilita One"');const rd=new T.WebGLRenderer({canvas:gl,antialias:true});rd.setPixelRatio(Math.min(devicePixelRatio,2));rd.shadowMap.enabled=true;rd.shadowMap.type=T.PCFSoftShadowMap;
@@ -480,9 +480,9 @@ setInterval(()=>{if(!AUC)return;if(t<AUC.currentTime)t=AUC.currentTime+.05;while
 if(n%4==0)aTone(130,40,.12,'sine',.9,t,AUM);if(n&1)aNoise(.04,.25,7000,t,AUM,1);
 if([0,3,4,6].includes(i))aTone(r*(i==4?1.5:1),0,.2,'triangle',.5,t,AUM);
 if(b&1)aTone(r*4*2**(A[i]/12),0,.11,'square',.07,t,AUM);t+=sp;n++}},100)}
-// ===== ATRAPAGEMAS =====
+// ===== FIEBRE DE GEMAS =====
 const MN={x:W/2,z:H/2},GI=4,gvv=i=>bbl?bg[i]:hst?Math.ceil(SFS[i].hp/SFS[i].max*100):bnt?bst[i]:gmode?tgm(i):sc[i],tgm=i=>{let n=0;for(const u of U)if(u.team==i&&!u.dead)n+=u.gm|0;return n},
-glb=()=>bbl?(bOT?'¡GOL DE ORO!':'BALÓN BRAWL · '+bClk()):hst?'ATRACO · '+bClk():bnt?(bOT?'¡MUERTE SÚBITA!':'RECOMPENSA · '+bClk()):!gmode?'PRIMERO A 10 KOs':cdH<0?'ATRAPAGEMAS · 10 GEMAS':cdH==me.team?'¡AGUANTA LAS GEMAS!':'¡ROBA SUS GEMAS!',
+glb=()=>bbl?(bOT?'¡GOL DE ORO!':'GOLAZO · '+bClk()):hst?'ASALTO · '+bClk():bnt?(bOT?'¡MUERTE SÚBITA!':'DUELO DE ESTRELLAS · '+bClk()):!gmode?'PRIMERO A 10 KOs':cdH<0?'FIEBRE DE GEMAS · 10 GEMAS':cdH==me.team?'¡AGUANTA LAS GEMAS!':'¡ROBA SUS GEMAS!',
 dia=(x,y,s)=>{g.beginPath();g.moveTo(x,y-s);g.lineTo(x+s*.8,y);g.lineTo(x,y+s);g.lineTo(x-s*.8,y);g.closePath();g.fillStyle='#e07bff';g.fill();g.lineWidth=2.5;g.strokeStyle='#1a1040';g.stroke()},
 ngem=e=>{let b=null,bd=16;for(const q of Gs){if(q.t<1)continue;const d=Math.hypot(q.x-e.x,q.z-e.z);if(d<bd){bd=d;b=q}}return b};
 function mkGem(){const G=new T.Group(),a=(m,s)=>{const q=new T.Mesh(DG,m);q.scale.set(s*.78,s,s*.78);G.add(q)};a(OL,.5);a(bmat(0xd24bff),.36);a(WM,.14);return G}
@@ -560,13 +560,13 @@ if(k=='mico')ok=fr?n>=2&&tg.hp<tg.max*.6:n>=2||(low&&bd<7);else if(fr)return;
 else if(k=='halcon'){let c=0;for(const u of U)if(!u.dead&&u.team==tg.team){const rx=u.x-e.x,rz=u.z-e.z,a=rx*e.ax+rz*e.az;if(a>0&&a<13&&Math.abs(rz*e.ax-rx*e.az)<1)c++}ok=c>=2||(low&&bd>5)}
 else if(k=='tanque')ok=n>=2||(bd>3&&bd<6&&tg.hp>tg.max*.4);else if(k=='vipra')ok=bd>4||n>=2;else ok=n>=2||low||(e.rtr&&bd<4);
 if(ok)useSup(e)}
-// ===== PASO 12a: MODO RECOMPENSA =====
+// ===== PASO 12a: MODO DUELO DE ESTRELLAS =====
 const bClk=()=>{const t=Math.max(0,Math.ceil(bT));return(t/60|0)+':'+String(t%60).padStart(2,'0')};
 function bKill(t,s){if(!bnt||st!='play')return;const tm=s?s.team:1-t.team,v=t.bn||2;bst[tm]+=v;if(s&&s!==t)s.bn=Math.min(7,(s.bn||2)+1);t.bn=2;Dn.push({x:t.x,z:t.z,v:'+'+v+'★',t:0,c:'#ffd23f'});sfx('gem',t);if(bOT)fin(tm)}
 function bup(dt){if(hst)sfUp(dt);if(bbl)blUp(dt);if(!(bnt||hst||bbl)||st!='play'||bOT)return;bT-=dt;if(bT>0){if(bT<=10&&Math.ceil(bT)!=Math.ceil(bT+dt))sfx('tick');return}bT=0;if(bbl){if(bg[0]==bg[1]){bOT=1;sfx('alert')}else fin(bg[0]>bg[1]?0:1);return}if(hst){const a=SFS[0].hp,b=SFS[1].hp;fin(a==b?(sc[me.team]>=sc[1-me.team]?me.team:1-me.team):a>b?0:1);return}if(bst[0]==bst[1]){bOT=1;sfx('alert')}else fin(bst[me.team]>bst[1-me.team]?me.team:1-me.team)}
 function bstar(x,y){g.beginPath();for(let i=0;i<10;i++){const r=i&1?4:9,a=-PI/2+i*PI/5;g.lineTo(x+Math.cos(a)*r,y+Math.sin(a)*r)}g.closePath();g.fillStyle='#ffd23f';g.fill();g.lineWidth=2.5;g.strokeStyle='#1a1040';g.stroke()}
 function bBig(sx,sy){g.font='56px "Lilita One","Arial Black"';g.lineWidth=10;g.strokeStyle='#1a1040';g.fillStyle='#ff6a6a';const q=Math.ceil(bT)+'';g.strokeText(q,sx,sy+135);g.fillText(q,sx,sy+135)}
-// ===== PASO 12b: MODO ATRACO =====
+// ===== PASO 12b: MODO ASALTO =====
 const SFHP=60000;
 function carveSafes(){SFS=[];for(let t=0;t<2;t++){const x0=t?W-8:5,z0=16;for(let z=z0-1;z<=z0+3;z++)for(let x=x0-1;x<=x0+3;x++)Mp[z][x]=x>=x0&&x<x0+3&&z>=z0&&z<z0+3?5:0;
 SFS.push({team:t,x:x0+1.5,z:z0+1.5,x0,z0,hp:SFHP,max:SFHP,vx:0,vz:0,dead:0,lp:0,h:0,hid:0,k:'safe',gm:0,atk:0,fl:0,t:0,sm:0,wt:-9})}}
@@ -621,7 +621,7 @@ const gr=g.createLinearGradient(0,t,0,t+bh);gr.addColorStop(0,col[0]);gr.addColo
 if(s.fl>0||(r<.25&&Math.sin(now*12)>0)){g.fillStyle='#fff9';g.fillRect(l,t,bw*r,bh)}g.fillStyle='#1a104066';for(let q=1;q<4;q++)g.fillRect(l+bw*q/4-.5,t,1,bh);g.restore();
 g.textAlign='center';F(12);g.lineWidth=3.5;g.strokeStyle='#1a1040';g.fillStyle='#fff';const pc=Math.ceil(r*100)+'%';g.strokeText(pc,x,y+4.5);g.fillText(pc,x,y+4.5);
 F(13);g.lineWidth=4;g.fillStyle=own?'#7dff8e':'#ff9a9a';const lb=own?'TU CAJA FUERTE':'CAJA ENEMIGA';g.strokeText(lb,x,y-15);g.fillText(lb,x,y-15)}}
-// ===== PASO 12c: BALON BRAWL =====
+// ===== PASO 12c: GOLAZO =====
 function carveGoals(){for(const t of[0,1]){const x0=t?W-3:1;for(let x=x0;x<x0+2;x++)for(let z=13;z<=20;z++)Mp[z][x]=(z==13||z==20)?1:0}}
 let blLs=0;const GPOST=t=>[[t?W-3:3,H/2-3],[t?W-3:3,H/2+3]];
 function blFree(x,z){for(let r=0;r<8;r+=.5)for(let i=0;i<8;i++){const a=i*PI/4,X=x+Math.cos(a)*r,Z=z+Math.sin(a)*r;if(!sol(X,Z)&&!sol(X+.5,Z)&&!sol(X-.5,Z)&&!sol(X,Z+.5)&&!sol(X,Z-.5))return[X,Z]}return[x,z]}
@@ -783,7 +783,7 @@ function nmsg(m){
  else if(m.t=='up'&&NET==1)nup(m.from,m.d);
  else if(m.t=='dn'&&NET==2)ndn(m.d)}
 function netStart(){
- if(gmode||hst||bbl){nst('Multijugador: elige "A 10 KOs" o "RECOMPENSA"');return}
+ if(gmode||hst||bbl){nst('Multijugador: elige "A 10 KOs" o "DUELO DE ESTRELLAS"');return}
  const ks=Object.keys(K),slots=N1?[[0,1],[1,1]]:[[0,1],[1,1],[0,0],[1,0],[0,2],[1,2]],h=NPL.slice().sort((a,b)=>a.id-b.id).slice(0,N1?2:6);
  if(N1&&h.length<2){nst('Para 1 VS 1 hace falta que alguien más se una a la sala');return}
  ROS=slots.map(([t,i],j)=>{const p=h[j];return p?{k:p.id==NID?sel:(K[p.k]?p.k:'brasa'),team:t,i,o:p.id}:{k:ks[Math.random()*ks.length|0],team:t,i,o:-1}});
